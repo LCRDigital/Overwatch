@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CLIENT_ID</key>
+	<string>663837456668-tkqeebrkc5rdcqgnqpp4c92j17paud7n.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.663837456668-tkqeebrkc5rdcqgnqpp4c92j17paud7n</string>
+	<key>ANDROID_CLIENT_ID</key>
+	<string>663837456668-ajk1d8mvjb1ga21mepb81u9v3lt80o3f.apps.googleusercontent.com</string>
+	<key>API_KEY</key>
+	<string>AIzaSyCeuPtE8WszVggzRHk4FKdI1aoiiCHg-XU</string>
+	<key>GCM_SENDER_ID</key>
+	<string>663837456668</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.mycompany.overwatch</string>
+	<key>PROJECT_ID</key>
+	<string>t-l-ci-q-o3zvss</string>
+	<key>STORAGE_BUCKET</key>
+	<string>t-l-ci-q-o3zvss.appspot.com</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:663837456668:ios:05814e3b688b57c27122d9</string>
+</dict>
+</plist>
