@@ -6,7 +6,7 @@ class TVDashboardTheme {
     return ThemeData(
       brightness: Brightness.dark,
       useMaterial3: true,
-      
+
       // Primary colors for TV display
       colorScheme: const ColorScheme.dark(
         primary: Color(0xFF8B5CF6), // Purple
@@ -18,7 +18,7 @@ class TVDashboardTheme {
         onSurface: Color(0xFFFFFFFF), // White text on dark surfaces
         onBackground: Color(0xFFFFFFFF), // White text on black
       ),
-      
+
       // Large, bold fonts for TV visibility
       textTheme: const TextTheme(
         displayLarge: TextStyle(
@@ -78,7 +78,7 @@ class TVDashboardTheme {
           color: Color(0xFFC084FC),
         ),
       ),
-      
+
       // Card theme with glow effects
       cardTheme: CardTheme(
         color: const Color(0xFF1A1A1A),
@@ -92,7 +92,7 @@ class TVDashboardTheme {
           ),
         ),
       ),
-      
+
       // Button theme with glow effects
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
@@ -109,7 +109,7 @@ class TVDashboardTheme {
           elevation: 12,
         ),
       ),
-      
+
       // AppBar theme
       appBarTheme: const AppBarTheme(
         backgroundColor: Color(0xFF000000),
@@ -130,7 +130,7 @@ class TVDashboardTheme {
       ),
     );
   }
-  
+
   // Custom container with glow effect for Recent Activity section
   static Widget glowContainer({
     required Widget child,
@@ -175,7 +175,7 @@ class TVDashboardTheme {
       child: child,
     );
   }
-  
+
   // Glow text widget
   static Widget glowText(
     String text, {
