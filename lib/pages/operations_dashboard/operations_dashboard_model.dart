@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '/flutter_flow/flutter_flow_model.dart';
 import '/flutter_flow/flutter_flow_util.dart';
+import '/backend/supabase/supabase.dart';
 import 'operations_dashboard_widget.dart';
 
 export 'operations_dashboard_model.dart';
@@ -13,96 +13,15 @@ class OperationsDashboardModel extends FlutterFlowModel<OperationsDashboardWidge
   // State variables
   DateTime lastUpdate = DateTime.now();
   
-  // Mock data - In a real app, this would come from API calls
-  final List<Map<String, dynamic>> _recentActivities = [
-    {
-      'project': 'Project Alpha',
-      'activity': 'Unit completed: SKU-001234',
-      'status': 'completed',
-      'time': '2 min ago',
-    },
-    {
-      'project': 'Project Beta',
-      'activity': 'Quality check passed',
-      'status': 'on_track',
-      'time': '5 min ago',
-    },
-    {
-      'project': 'Project Gamma',
-      'activity': 'Delay reported - Material shortage',
-      'status': 'at_risk',
-      'time': '8 min ago',
-    },
-    {
-      'project': 'Project Delta',
-      'activity': 'Production started',
-      'status': 'in_progress',
-      'time': '12 min ago',
-    },
-    {
-      'project': 'Project Epsilon',
-      'activity': 'Batch QC completed',
-      'status': 'completed',
-      'time': '15 min ago',
-    },
-    {
-      'project': 'Project Zeta',
-      'activity': 'Schedule adjustment required',
-      'status': 'needs_attention',
-      'time': '18 min ago',
-    },
-    {
-      'project': 'Project Eta',
-      'activity': 'Equipment calibration',
-      'status': 'in_progress',
-      'time': '22 min ago',
-    },
-    {
-      'project': 'Project Theta',
-      'activity': 'Milestone reached',
-      'status': 'completed',
-      'time': '25 min ago',
-    },
-  ];
+  // Live data from Supabase
+  List<Map<String, dynamic>> _recentActivities = [];
+  bool _isLoadingActivities = true;
 
-  final List<Map<String, dynamic>> _activeProjects = [
-    {
-      'name': 'TLCiQ Production Line A',
-      'status': 'on_track',
-      'progress': 0.87,
-      'dueDate': '2024-02-15',
-    },
-    {
-      'name': 'TLCiQ Production Line B',
-      'status': 'needs_attention',
-      'progress': 0.65,
-      'dueDate': '2024-02-18',
-    },
-    {
-      'name': 'TLCiQ Quality Control Enhancement',
-      'status': 'in_progress',
-      'progress': 0.42,
-      'dueDate': '2024-02-20',
-    },
-    {
-      'name': 'TLCiQ Supply Chain Optimization',
-      'status': 'at_risk',
-      'progress': 0.23,
-      'dueDate': '2024-02-22',
-    },
-    {
-      'name': 'TLCiQ Equipment Maintenance',
-      'status': 'on_track',
-      'progress': 0.91,
-      'dueDate': '2024-02-14',
-    },
-    {
-      'name': 'TLCiQ Batch Processing Upgrade',
-      'status': 'in_progress',
-      'progress': 0.58,
-      'dueDate': '2024-02-25',
-    },
-  ];
+  List<Map<String, dynamic>> _activeProjects = [];
+  bool _isLoadingProjects = true;
+  
+  List<Map<String, dynamic>> _dashboardMetrics = [];
+  bool _isLoadingMetrics = true;
 
   void initializeAnimations(TickerProvider tickerProvider) {
     backgroundAnimationController = AnimationController(
@@ -134,31 +53,69 @@ class OperationsDashboardModel extends FlutterFlowModel<OperationsDashboardWidge
     return _activeProjects;
   }
 
-  // Simulate real-time data updates
-  void updateData() {
+  // Real-time data updates
+  Future<void> updateData() async {
     lastUpdate = DateTime.now();
-    // In a real app, this would trigger API calls to refresh data
+    await loadAllData();
     // Note: FlutterFlowModel doesn't have notifyListeners, use safeSetState in widget instead
   }
 
-  // Status indicators data
+  // Status indicators data (calculated from real project data)
   Map<String, int> getStatusIndicators() {
+    if (_isLoadingProjects) {
+      return {
+        'on_track': 0,
+        'needs_attention': 0,
+        'at_risk': 0,
+      };
+    }
+    
+    final onTrack = _activeProjects.where((p) => p['status'] == 'on_track').length;
+    final needsAttention = _activeProjects.where((p) => p['status'] == 'needs_attention').length;
+    final atRisk = _activeProjects.where((p) => p['status'] == 'at_risk').length;
+    
     return {
-      'on_track': 24,
-      'needs_attention': 8,
-      'at_risk': 3,
+      'on_track': onTrack,
+      'needs_attention': needsAttention,
+      'at_risk': atRisk,
     };
   }
 
-  // Pacing metrics data
+  // Pacing metrics data (from dashboard metrics)
   Map<String, dynamic> getPacingMetrics() {
+    if (_isLoadingMetrics) {
+      return {
+        'units_completed': 0,
+        'units_completed_change': 0,
+        'scheduled_today': 0,
+        'scheduled_today_change': 0,
+        'completion_rate': 0.0,
+        'completion_rate_change': 0,
+      };
+    }
+    
+    final getMetricValue = (String name) {
+      final metric = _dashboardMetrics.firstWhere(
+        (m) => m['name'].toString().toLowerCase().contains(name.toLowerCase()),
+        orElse: () => {'value': 0.0, 'change': 0.0},
+      );
+      return {
+        'value': metric['value'] ?? 0.0,
+        'change': metric['change'] ?? 0.0,
+      };
+    };
+    
+    final unitsCompleted = getMetricValue('units_completed');
+    final scheduledToday = getMetricValue('scheduled_today');
+    final completionRate = getMetricValue('completion_rate');
+    
     return {
-      'units_completed': 1247,
-      'units_completed_change': 12,
-      'scheduled_today': 156,
-      'scheduled_today_change': 0,
-      'completion_rate': 87.4,
-      'completion_rate_change': 5,
+      'units_completed': unitsCompleted['value']?.toInt() ?? 0,
+      'units_completed_change': unitsCompleted['change']?.toInt() ?? 0,
+      'scheduled_today': scheduledToday['value']?.toInt() ?? 0,
+      'scheduled_today_change': scheduledToday['change']?.toInt() ?? 0,
+      'completion_rate': completionRate['value'] ?? 0.0,
+      'completion_rate_change': completionRate['change']?.toInt() ?? 0,
     };
   }
 
@@ -172,9 +129,182 @@ class OperationsDashboardModel extends FlutterFlowModel<OperationsDashboardWidge
     };
   }
 
+  // Load recent activities from Supabase
+  Future<void> loadRecentActivities() async {
+    try {
+      final response = await SupaFlow.client
+          .from('recent_activity')
+          .select('*')
+          .order('activity_time', ascending: false)
+          .limit(20);
+      
+      if (response != null) {
+        _recentActivities = (response as List).map((item) {
+          final activity = item as Map<String, dynamic>;
+          final activityTime = DateTime.tryParse(activity['activity_time'] ?? '');
+          final timeAgo = activityTime != null 
+              ? _getTimeAgo(activityTime)
+              : 'Unknown time';
+              
+          return {
+            'project': activity['deal_id'] ?? 'Unknown Project',
+            'activity': '${activity['activity_type'] ?? 'Activity'}: ${activity['reference'] ?? 'No reference'}',
+            'status': _mapActivityStatus(activity['activity_type']),
+            'time': timeAgo,
+            'performed_by': activity['performed_by'] ?? 'System',
+          };
+        }).toList();
+      }
+      _isLoadingActivities = false;
+    } catch (e) {
+      print('Error loading recent activities: $e');
+      _isLoadingActivities = false;
+    }
+  }
+
+  // Load active projects from deals table
+  Future<void> loadActiveProjects() async {
+    try {
+      final response = await SupaFlow.client
+          .from('deals')
+          .select('*')
+          .neq('project_status', 'completed')
+          .order('start_date', ascending: false)
+          .limit(10);
+      
+      if (response != null) {
+        _activeProjects = (response as List).map((item) {
+          final deal = item as Map<String, dynamic>;
+          final progress = _calculateProgress(deal);
+          
+          return {
+            'name': deal['deal'] ?? 'Unknown Project',
+            'status': _mapProjectStatus(deal['project_status']),
+            'progress': progress,
+            'dueDate': deal['end_date'] ?? '',
+            'address': deal['address'] ?? '',
+            'assigned': deal['assigned'] ?? 'Unassigned',
+          };
+        }).toList();
+      }
+      _isLoadingProjects = false;
+    } catch (e) {
+      print('Error loading active projects: $e');
+      _isLoadingProjects = false;
+    }
+  }
+
+  // Load dashboard metrics
+  Future<void> loadDashboardMetrics() async {
+    try {
+      final response = await SupaFlow.client
+          .from('dashboard_metrics_view')
+          .select('*')
+          .order('metric_name');
+      
+      if (response != null) {
+        _dashboardMetrics = (response as List).map((item) {
+          final metric = item as Map<String, dynamic>;
+          return {
+            'name': metric['metric_name'] ?? 'Unknown Metric',
+            'value': metric['metric_value'] ?? 0.0,
+            'type': metric['metric_type'] ?? 'number',
+            'unit': metric['unit'] ?? '',
+            'trend': metric['trend_direction'] ?? 'neutral',
+            'change': metric['change_percentage'] ?? 0.0,
+            'category': metric['category'] ?? 'general',
+          };
+        }).toList();
+      }
+      _isLoadingMetrics = false;
+    } catch (e) {
+      print('Error loading dashboard metrics: $e');
+      _isLoadingMetrics = false;
+    }
+  }
+
+  // Helper methods for data processing
+  String _getTimeAgo(DateTime activityTime) {
+    final now = DateTime.now();
+    final difference = now.difference(activityTime);
+    
+    if (difference.inMinutes < 1) {
+      return 'Just now';
+    } else if (difference.inMinutes < 60) {
+      return '${difference.inMinutes} min ago';
+    } else if (difference.inHours < 24) {
+      return '${difference.inHours} hr ago';
+    } else {
+      return '${difference.inDays} days ago';
+    }
+  }
+
+  String _mapActivityStatus(String? activityType) {
+    switch (activityType?.toLowerCase()) {
+      case 'completion':
+      case 'completed':
+        return 'completed';
+      case 'start':
+      case 'started':
+        return 'in_progress';
+      case 'issue':
+      case 'problem':
+        return 'at_risk';
+      case 'attention':
+      case 'review':
+        return 'needs_attention';
+      default:
+        return 'on_track';
+    }
+  }
+
+  String _mapProjectStatus(String? status) {
+    switch (status?.toLowerCase()) {
+      case 'active':
+      case 'in_progress':
+        return 'in_progress';
+      case 'on_track':
+        return 'on_track';
+      case 'attention':
+      case 'needs_attention':
+        return 'needs_attention';
+      case 'at_risk':
+      case 'delayed':
+        return 'at_risk';
+      default:
+        return 'on_track';
+    }
+  }
+
+  double _calculateProgress(Map<String, dynamic> deal) {
+    // Simple progress calculation based on dates
+    final startDate = DateTime.tryParse(deal['start_date'] ?? '');
+    final endDate = DateTime.tryParse(deal['end_date'] ?? '');
+    final now = DateTime.now();
+    
+    if (startDate == null || endDate == null) return 0.0;
+    if (now.isBefore(startDate)) return 0.0;
+    if (now.isAfter(endDate)) return 1.0;
+    
+    final totalDuration = endDate.difference(startDate).inDays;
+    final elapsed = now.difference(startDate).inDays;
+    
+    return (elapsed / totalDuration).clamp(0.0, 1.0);
+  }
+
+  // Load all data
+  Future<void> loadAllData() async {
+    await Future.wait([
+      loadRecentActivities(),
+      loadActiveProjects(),
+      loadDashboardMetrics(),
+    ]);
+  }
+
   @override
   void initState(BuildContext context) {
-    // Initialize any additional state here
+    // Load live data on initialization
+    loadAllData();
   }
 
   @override
